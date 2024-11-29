@@ -367,4 +367,4 @@ def validate(val_loader, model, epoch):
 
 if __name__ == '__main__':
     main()
-    #  python train_my.py rpknet --way autocast -b 8 --pyramid_ranges 32 8 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --pretrained ./checkpoints/rpknet-kitti.ckpt
+    #  python train_my.py rpknet --way autocast -b 8 --pyramid_ranges 32 8 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --pretrained ./rpknet,adam,300epochs,b8,lr0.0001/checkpoint.pth.tar
