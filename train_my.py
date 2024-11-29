@@ -57,9 +57,8 @@ def get():
                         metavar='W', help='weight decay')
     parser.add_argument('--bias-decay', default=0, type=float,
                         metavar='B', help='bias decay')
-    parser.add_argument('--multiscale-weights', '-w', default=[0.005,0.005,0.01,0.02,0.08,0.32], type=float, nargs=5,
-                        help='training weight for each scale, from highest resolution (flow2) to lowest (flow6)',
-                        metavar=('W2', 'W3', 'W4', 'W5', 'W6'))
+    parser.add_argument('--multiscale-weights', '-w', default=[0.32,0.08,0.02,0.01,0.005,0.001], type=float, nargs=5,
+                        help='training weight for each scale, from highest resolution (flow2) to lowest (flow6)',)
     parser.add_argument('--sparse', action='store_true',
                         help='look for NaNs in target flow when computing EPE, avoid if flow is garantied to be dense,'
                         ' ')
@@ -280,7 +279,8 @@ def train(train_loader, model, optimizer, epoch, train_writer,scheduler):
         # breakpoint()
         #output['flows]=torch.Size([8, 1, 2, 256, 256])
         output['flows'] = output['flows'].squeeze(1)
-        loss = multiscaleEPE(output['flow_preds'], target, weights=args.multiscale_weights, sparse=args.sparse)
+        # loss = multiscaleEPE(output['flow_preds'], target, weights=args.multiscale_weights, sparse=args.sparse)
+        loss=realEPE(output['flows'], target, sparse=args.sparse)
         flow2_EPE = args.div_flow * realEPE(output['flows'], target, sparse=args.sparse)
         # record loss and EPE
         losses.update(loss.item(), target.size(0))
