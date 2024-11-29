@@ -346,7 +346,7 @@ def validate(val_loader, model, epoch):
             # output = [F.interpolate(output[0], (h,w)), *output[1:]]
         # breakpoint()
         #output['flows]=torch.Size([8, 1, 2, 256, 256])
-
+        output['flows'] = output['flows'].squeeze(1)
         flow2_EPE = args.div_flow * realEPE(output['flows'], target, sparse=args.sparse)
         # record EPE
         flow2_EPEs.update(flow2_EPE.item(), target.size(0))
