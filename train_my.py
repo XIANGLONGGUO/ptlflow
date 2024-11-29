@@ -57,7 +57,7 @@ def get():
                         metavar='W', help='weight decay')
     parser.add_argument('--bias-decay', default=0, type=float,
                         metavar='B', help='bias decay')
-    parser.add_argument('--multiscale-weights', '-w', default=[0.32,0.08,0.02,0.01,0.005,0.001], type=float, nargs=5,
+    parser.add_argument('--multiscale-weights', '-w', default=[0,0.0,0.0,0.0,0.00,1], type=float, nargs=5,
                         help='training weight for each scale, from highest resolution (flow2) to lowest (flow6)',)
     parser.add_argument('--sparse', action='store_true',
                         help='look for NaNs in target flow when computing EPE, avoid if flow is garantied to be dense,'
@@ -168,7 +168,7 @@ def main():
         
     
     train_set = SpecklesDataset(csv_file='../StrainNet/Dataset/Speckle-dataset-2.0/Train_annotations.csv', root_dir='../StrainNet/Dataset/Speckle-dataset-2.0/Train_Data/', transform = transform)
-    test_set = SpecklesDataset(csv_file='../StrainNet/Dataset/Speckle-dataset-2.0/Test_annotations.csv', root_dir='../Strain/Dataset/Speckle-dataset-2.0/Test_Data/', transform = transform)
+    test_set = SpecklesDataset(csv_file='../StrainNet/Dataset/Speckle-dataset-2.0/Test_annotations.csv', root_dir='../StrainNet/Dataset/Speckle-dataset-2.0/Test_Data/', transform = transform)
     
     
     print('{} samples found, {} train samples and {} test samples '.format(len(test_set)+len(train_set),
@@ -330,10 +330,24 @@ def validate(val_loader, model, epoch):
         in_def = batch['Def'].float().to(device) 
         in_def = torch.cat([in_def,in_def,in_def],1).to(device)
         input = torch.cat([in_ref,in_def],1).to(device)
-
+        input={}
+        input['images'] = torch.stack([in_ref, in_def], dim=1)  # 将它们堆叠在一起，形状变为 [batch, 2, 3, size, size]
         # compute output
-        output = model(input)
-        flow2_EPE = args.div_flow*realEPE(output, target, sparse=args.sparse)
+        if args.way == 'autocast':
+            with amp.autocast():
+                output = model(input)
+        else:
+            output = model(input)
+        
+        # if args.sparse:
+            # # Since Target pooling is not very precise when sparse,
+            # # take the highest resolution prediction and upsample it instead of downsampling target
+            # h, w = target.size()[-2:]
+            # output = [F.interpolate(output[0], (h,w)), *output[1:]]
+        # breakpoint()
+        #output['flows]=torch.Size([8, 1, 2, 256, 256])
+
+        flow2_EPE = args.div_flow * realEPE(output['flows'], target, sparse=args.sparse)
         # record EPE
         flow2_EPEs.update(flow2_EPE.item(), target.size(0))
 
