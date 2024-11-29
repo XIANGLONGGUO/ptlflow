@@ -289,6 +289,7 @@ class RPKNet(BaseModel):
     def forward(self, inputs):
         images, image_resizer = self.preprocess_images(
             inputs["images"],
+            # inputs,
             bgr_add=-0.5,
             bgr_mult=2.0,
             bgr_to_rgb=self.args.input_bgr_to_rgb,
@@ -317,7 +318,7 @@ class RPKNet(BaseModel):
 
         if self.training:
             outputs["flow_preds"] = flow_predictions
-
+        # breakpoint()
         return outputs
 
     def predict(self, x1_raw, x2_raw, flow_init):
