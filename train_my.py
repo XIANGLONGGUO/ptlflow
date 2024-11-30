@@ -208,7 +208,8 @@ def main():
                                     momentum=args.momentum,
                                     weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.milestones, gamma=0.5)
-
+    network_data = torch.load(args.pretrained)
+    args.start_epoch=network_data['epoch']
     for epoch in range(args.start_epoch, args.epochs):
         
         # train for one epoch
