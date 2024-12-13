@@ -19,6 +19,7 @@ plt.imshow(disp_y, cmap='jet', interpolation='nearest')
 #显示颜色条
 plt.colorbar()
 plt.axis('off')
+plt.savefig('./test_img/disp_y.png')
 plt.show()
 
 

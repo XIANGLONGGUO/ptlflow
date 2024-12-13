@@ -133,5 +133,5 @@ def main():
    
 if __name__ == '__main__':
     main()
-    #python inf.py rpknet --pyramid_ranges 32 8 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --pretrained ./rpknet,adam,300epochs,b8,lr0.0001/checkpoint.pth.tar --data test_img --output ./test_img
+    #python inf.py rpknet --pyramid_ranges 32 8 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --pretrained ./rpknet,adam,150epochs,b8,lr0.0001/checkpoint.pth.tar --data test_img --output ./test_img
 
