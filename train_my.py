@@ -184,11 +184,12 @@ def main():
         num_workers=args.workers, pin_memory=True, shuffle=True)
 
     # create model
-    if args.pretrained:
+    if args.pretrained !=None:
         network_data = torch.load(args.pretrained)
         print('=> using pre-trained model')
     else:
         network_data = None
+        # args.pretrained = False
         print('creating model')
 
     model = get_model(args.model, args.pretrained,args).to(device)
@@ -208,8 +209,9 @@ def main():
                                     momentum=args.momentum,
                                     weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.milestones, gamma=0.5)
-    network_data = torch.load(args.pretrained)
-    args.start_epoch=network_data['epoch']
+    if args.pretrained !=None:
+        network_data = torch.load(args.pretrained)
+        args.start_epoch=network_data['epoch']
     for epoch in range(args.start_epoch, args.epochs):
         
         # train for one epoch
@@ -369,3 +371,4 @@ def validate(val_loader, model, epoch):
 if __name__ == '__main__':
     main()
     #  python train_my.py rpknet --way autocast -b 8 --pyramid_ranges 32 8 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --pretrained ./rpknet,adam,150epochs,b8,lr0.0001/checkpoint.pth.tar
+    #python train_my.py rpknet --way autocast -b 8 --pyramid_ranges 32 8 4 2 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --epochs 200
