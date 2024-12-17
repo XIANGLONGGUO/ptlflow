@@ -7,8 +7,8 @@ from PIL import Image
 import os
 
 #两个都是二位矩阵
-disp_x = pd.read_csv('./test_img/_disp_x.csv',header=None).values
-disp_y = pd.read_csv('./test_img/_disp_y.csv',header=None).values
+disp_x = pd.read_csv('./test_img-2/_disp_x.csv',header=None).values
+disp_y = pd.read_csv('./test_img-2/_disp_y.csv',header=None).values
 
 # print(disp_x)
 # print(disp_y)

@@ -1,2 +1,2 @@
-python inf.py rpknet --pyramid_ranges 32 8 4 2 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --pretrained ./rpknet,adam,200epochs,b8,lr0.0001/checkpoint.pth.tar --data test_img --output ./test_img
+python inf.py rpknet --pyramid_ranges 32 8 4 2 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --pretrained ./rpknet,adam,200epochs,b8,lr0.0001/checkpoint.pth.tar --data test_img-2 --output ./test_img-2
 python test_img-2/cloud.py
