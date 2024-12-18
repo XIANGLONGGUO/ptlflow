@@ -372,3 +372,4 @@ if __name__ == '__main__':
     main()
     #  python train_my.py rpknet --way autocast -b 8 --pyramid_ranges 32 8 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --pretrained ./rpknet,adam,150epochs,b8,lr0.0001/checkpoint.pth.tar
     #python train_my.py rpknet --way autocast -b 8 --pyramid_ranges 32 8 4 2 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --epochs 200
+    #python train_my.py rpknet -b 8 --pyramid_ranges 64 32 4 1 --iters 24 --corr_mode all_mode al-ot_cache_pkconv_weights --epochs 100 
