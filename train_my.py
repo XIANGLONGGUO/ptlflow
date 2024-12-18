@@ -195,7 +195,6 @@ def main():
     model = get_model(args.model, args.pretrained,args).to(device)
     model = torch.nn.DataParallel(model).cuda()
     cudnn.benchmark = True
-
     assert(args.solver in ['adam', 'sgd'])
     print('=> setting {} solver'.format(args.solver))
     # param_groups = [{'params': model.module.bias_parameters(), 'weight_decay': args.bias_decay},
