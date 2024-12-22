@@ -68,6 +68,7 @@ class GroupNorm(nn.GroupNorm):
                 self.eps,
             )
         else:
+            # breakpoint()
             x = F.group_norm(x, self.num_groups, eps=self.eps)
         return x
 

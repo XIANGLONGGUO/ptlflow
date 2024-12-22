@@ -161,6 +161,7 @@ class RPKNet(BaseModel):
                 net_chs = base_chs - inp_chs
             elif net_chs is not None and inp_chs is None:
                 inp_chs = base_chs - net_chs
+        print(net_chs, inp_chs,self.args.out_1x1_abs_chs)
         self.args.net_chs_fixed = net_chs
         self.args.inp_chs_fixed = inp_chs
 
@@ -407,6 +408,7 @@ class RPKNet(BaseModel):
             if l > 0:
                 flow = rescale_flow(flow, x1.shape[-1], x1.shape[-2], to_local=False)
                 flow = upsample2d_as(flow, x1, mode="bilinear")
+                # breakpoint()
             # breakpoint()
             for _ in range(iters_per_level[l]):
                 if self.args.detach_flow:
@@ -426,6 +428,7 @@ class RPKNet(BaseModel):
                 # breakpoint()
                 if l < (output_level - start_level) or mask is None:
                     out_flow = upsample2d_as(out_flow, x1_raw, mode="bilinear")
+                    # breakpoint()
                 else:
                     out_flow = self.upsample_flow(out_flow, mask, pred_stride)
 
