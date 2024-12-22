@@ -1,0 +1,1 @@
+python train_my.py rpknet --way autocast -b 8 --pyramid_ranges 32 8 2 1 --iters 16 --corr_mode allpairs --epochs 100 --not_cache_pkconv_weights --pretrained /home/lenovo/gxlong/work/ptlflow/rpknet,adam,100epochs,b8,lr0.0001/checkpoint.pth.tar

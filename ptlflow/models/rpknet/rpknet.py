@@ -326,7 +326,9 @@ class RPKNet(BaseModel):
 
         x1_pyramid = self.fnet(x1_raw)
         x2_pyramid = self.fnet(x2_raw)
-
+        # for i in range(len(x1_pyramid)):
+        #     print(x1_pyramid[i].shape)
+        #     print(x2_pyramid[i].shape)
         # outputs
         flows = []
 
@@ -381,7 +383,7 @@ class RPKNet(BaseModel):
             net_tmp = torch.cat([n1, n2], 1)
 
             coords0 = self.coords_grid(x1.shape[0], x1.shape[2], x1.shape[3])
-
+            # breakpoint()
             corr_fn = get_corr_block(
                 x1,
                 x2,
@@ -401,11 +403,11 @@ class RPKNet(BaseModel):
                     self.upnet_gate_layer(torch.cat([net, net_skip], dim=1))
                 )
                 net = gate * net + (1.0 - gate) * net_skip
-
+            # breakpoint()
             if l > 0:
                 flow = rescale_flow(flow, x1.shape[-1], x1.shape[-2], to_local=False)
                 flow = upsample2d_as(flow, x1, mode="bilinear")
-
+            # breakpoint()
             for _ in range(iters_per_level[l]):
                 if self.args.detach_flow:
                     flow = flow.detach()
@@ -419,15 +421,16 @@ class RPKNet(BaseModel):
 
                 out_flow = flow
                 small_flow = out_flow
+                # breakpoint()
                 out_flow = rescale_flow(out_flow, width_im, height_im, to_local=False)
-
+                # breakpoint()
                 if l < (output_level - start_level) or mask is None:
                     out_flow = upsample2d_as(out_flow, x1_raw, mode="bilinear")
                 else:
                     out_flow = self.upsample_flow(out_flow, mask, pred_stride)
 
                 flows.append(out_flow)
-
+                # breakpoint()
         small_flow = rescale_flow(
             small_flow,
             pass_pyramid1[0].shape[-1],
