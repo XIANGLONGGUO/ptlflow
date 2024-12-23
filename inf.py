@@ -33,6 +33,7 @@ def get():
                         help='value by which flow will be divided')
     parser.add_argument("--img-exts", metavar='EXT', default=['tif','png', 'jpg', 'bmp', 'ppm'], nargs='*', type=str,
                         help="images extensions to glob")
+    parser.add_argument('--way', default=None, type=str, help='train or test')
     return parser
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -116,7 +117,12 @@ def main():
         input['images'] = torch.stack([img1, img2], dim=1) 
         # compute output   
         # input_var = input_var.to(device)
-        output = model(input)
+        with torch.no_grad():
+            if args.way=='autocast':
+                with torch.cuda.amp.autocast():
+                    output = model(input)
+            else:
+                output = model(input)
         output = output['flows'].squeeze(1)
         output_to_write = output.data.cpu()
         output_to_write = output_to_write.numpy()       
