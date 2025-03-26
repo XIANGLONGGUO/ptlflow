@@ -34,6 +34,7 @@ def get():
     parser.add_argument("--img-exts", metavar='EXT', default=['tif','png', 'jpg', 'bmp', 'ppm'], nargs='*', type=str,
                         help="images extensions to glob")
     parser.add_argument('--way', default=None, type=str, help='train or test')
+    parser.add_argument('--plus',action='store_true', help='use plus')
     return parser
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -83,61 +84,135 @@ def main():
     model.eval()
     cudnn.benchmark = True
 
-
-    for (img1_file, img2_file) in tqdm(img_pairs):
-
-        img1 =  np.array(imread(img1_file))
-        img2 =  np.array(imread(img2_file))
+    if args.plus:
         
-        img1 = img1/255
-        img2 = img2/255
+        for (img1_file, img2_file) in tqdm(img_pairs):
+
+            img1 =  np.array(imread(img1_file))
+            img2 =  np.array(imread(img2_file))
             
-        if img1.ndim == 2:         
-            img1 = img1[np.newaxis, ...]       
-            img2 = img2[np.newaxis, ...]
-        
-            img1 = img1[np.newaxis, ...]       
-            img2 = img2[np.newaxis, ...]
+            img1 = img1/255
+            img2 = img2/255
+                
+            if img1.ndim == 2:         
+                img1 = img1[np.newaxis, ...]       
+                img2 = img2[np.newaxis, ...]
             
-            img1 = torch.from_numpy(img1).float()
-            img2 = torch.from_numpy(img2).float()       
+                img1 = img1[np.newaxis, ...]       
+                img2 = img2[np.newaxis, ...]
+                
+                img1 = torch.from_numpy(img1).float()
+                img2 = torch.from_numpy(img2).float()       
 
-            img1 = torch.cat([img1,img1,img1],1)
-            img2 = torch.cat([img2,img2,img2],1)
-            input_var = torch.cat([img1,img2],1)           
+                img1 = torch.cat([img1,img1,img1],1)
+                img2 = torch.cat([img2,img2,img2],1)
+                input_var = torch.cat([img1,img2],1)           
 
-        elif img1.ndim == 3:
-            img1 = np.transpose(img1, (2, 0, 1))
-            img2 = np.transpose(img2, (2, 0, 1))        
-        
-            img1 = torch.from_numpy(img1).float()
-            img2 = torch.from_numpy(img2).float()       
-            input_var = torch.cat([img1, img2]).unsqueeze(0)          
-        input={}
-        input['images'] = torch.stack([img1, img2], dim=1) 
-        # compute output   
-        # input_var = input_var.to(device)
-        with torch.no_grad():
-            if args.way=='autocast':
-                with torch.cuda.amp.autocast():
+            elif img1.ndim == 3:
+                img1 = np.transpose(img1, (2, 0, 1))
+                img2 = np.transpose(img2, (2, 0, 1))        
+            
+                img1 = torch.from_numpy(img1).float()
+                img2 = torch.from_numpy(img2).float()       
+                input_var = torch.cat([img1, img2]).unsqueeze(0)          
+            shape_x,shape_y = img1.shape[-2:]
+            print(img1.shape)
+            print(shape_x,shape_y)
+            # exit()
+            disp_x = np.zeros((shape_x,shape_y))
+            disp_y = np.zeros((shape_x,shape_y))
+            begin=0
+            end=128
+            for i in range(shape_y//16):
+                input={}
+                input['images'] = torch.stack([img1[:,:,:,begin:end], img2[:,:,:,begin:end]], dim=1) 
+                # compute output   
+                # input_var = input_var.to(device)
+                with torch.no_grad():
+                    if args.way=='autocast':
+                        with torch.cuda.amp.autocast():
+                            output = model(input)
+                    else:
+                        output = model(input)
+                output = output['flows'].squeeze(1)
+                # breakpoint()
+                output_to_write = output.data.cpu()
+                output_to_write = output_to_write.numpy()       
+                disp_x[:,begin:end] = output_to_write[0,0,:,:]
+                disp_x = - disp_x * args.div_flow + 1
+                disp_y[:,begin:end] = output_to_write[0,1,:,:]
+                disp_y = - disp_y * args.div_flow + 1
+                print(begin,end)
+                begin+=16
+                end+=16
+                if end>shape_y:
+                    end=shape_y
+            filenamex = save_path/'{}{}'.format(img1_file.stem[:-1], '_disp_x')
+            filenamey = save_path/'{}{}'.format(img1_file.stem[:-1], '_disp_y')        
+            np.savetxt(filenamex + '.csv', disp_x,delimiter=',')
+            np.savetxt(filenamey + '.csv', disp_y,delimiter=',')
+    else:
+        for (img1_file, img2_file) in tqdm(img_pairs):
+
+            img1 =  np.array(imread(img1_file))
+            img2 =  np.array(imread(img2_file))
+            
+            img1 = img1/255
+            img2 = img2/255
+                
+            if img1.ndim == 2:         
+                img1 = img1[np.newaxis, ...]       
+                img2 = img2[np.newaxis, ...]
+            
+                img1 = img1[np.newaxis, ...]       
+                img2 = img2[np.newaxis, ...]
+                
+                img1 = torch.from_numpy(img1).float()
+                img2 = torch.from_numpy(img2).float()       
+
+                img1 = torch.cat([img1,img1,img1],1)
+                img2 = torch.cat([img2,img2,img2],1)
+                input_var = torch.cat([img1,img2],1)           
+
+            elif img1.ndim == 3:
+                img1 = np.transpose(img1, (2, 0, 1))
+                img2 = np.transpose(img2, (2, 0, 1))        
+            
+                img1 = torch.from_numpy(img1).float()
+                img2 = torch.from_numpy(img2).float()       
+                input_var = torch.cat([img1, img2]).unsqueeze(0)          
+            input={}
+            input['images'] = torch.stack([img1[:,:,200:328,:], img2[:,:,200:328,:]], dim=1) 
+            # compute output   
+            # input_var = input_var.to(device)
+            with torch.no_grad():
+                if args.way=='autocast':
+                    with torch.cuda.amp.autocast():
+                        output = model(input)
+                else:
                     output = model(input)
-            else:
-                output = model(input)
-        output = output['flows'].squeeze(1)
-        output_to_write = output.data.cpu()
-        output_to_write = output_to_write.numpy()       
-        disp_x = output_to_write[0,0,:,:]
-        disp_x = - disp_x * args.div_flow + 1        
-        disp_y = output_to_write[0,1,:,:]
-        disp_y = - disp_y * args.div_flow + 1
+            output = output['flows'].squeeze(1)
+            output_to_write = output.data.cpu()
+            output_to_write = output_to_write.numpy()       
+            disp_x = output_to_write[0,0,:,:]
+            disp_x = - disp_x * args.div_flow + 1        
+            disp_y = output_to_write[0,1,:,:]
+            disp_y = - disp_y * args.div_flow + 1
 
-        filenamex = save_path/'{}{}'.format(img1_file.stem[:-1], '_disp_x')
-        filenamey = save_path/'{}{}'.format(img1_file.stem[:-1], '_disp_y')        
-        np.savetxt(filenamex + '.csv', disp_x,delimiter=',')
-        np.savetxt(filenamey + '.csv', disp_y,delimiter=',')
+            filenamex = save_path/'{}{}'.format(img1_file.stem[:-1], '_disp_x')
+            filenamey = save_path/'{}{}'.format(img1_file.stem[:-1], '_disp_y')        
+            np.savetxt(filenamex + '.csv', disp_x,delimiter=',')
+            np.savetxt(filenamey + '.csv', disp_y,delimiter=',')
+            
+
+
+
+
         
-   
 if __name__ == '__main__':
+    # parser = get()
+    # args=parser.parse_args()  
+      
     main()
     #python inf.py rpknet --pyramid_ranges 32 8 --iters 12 --corr_mode allpairs --not_cache_pkconv_weights --pretrained ./rpknet,adam,150epochs,b8,lr0.0001/checkpoint.pth.tar --data test_img --output ./test_img
 
